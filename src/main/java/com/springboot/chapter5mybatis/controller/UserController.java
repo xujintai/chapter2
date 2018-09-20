@@ -108,11 +108,7 @@ public class UserController {
     }
 
     /**
-<<<<<<< HEAD
      *  http://localhost:8080/user/listConverter?userList=1-user_name_1-note_1,2-user_name_2-note_2,3-user_name_3-note_3
-=======
-	 * http://localhost:8080/user/listConverter?userList=1-user_name_1-note_1,2-user_name_2-note_2,3-user_name_3-note_3
->>>>>>> 87ce9353ef42b8a385345238dfc72b8c5682b278
      * 调用自定义的 字符串转换器
      * @param userList
      * @return
@@ -122,6 +118,8 @@ public class UserController {
     public List<User> listConverter(List<User> userList){
         return userList;
     }
+
+
 
 
 
