@@ -1,12 +1,18 @@
 package com.springboot.chapter5mybatis.controller;
 
+import com.springboot.chapter5mybatis.pojo.ValidatorPojo;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.format.annotation.NumberFormat;
 import org.springframework.stereotype.Controller;
+import org.springframework.validation.Errors;
+import org.springframework.validation.FieldError;
+import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -95,6 +101,7 @@ public class MyController {
     }
 
     /**
+     *  http://localhost:8080/my/valid/page
      * 验证 JSR-303 验证数据功能
      */
     @GetMapping("/valid/page")
@@ -102,6 +109,36 @@ public class MyController {
         return "/validator/pojo";
     }
 
+    /**
+     * 解析验证参数错误
+     * @param vp  需要验证的POJO ， 使用注解 @Valid 表示验证
+     * @param errors 错误信息，它由 Sping MVC 通过验证POJO后自动填充
+     * @return 错误信息Map
+     */
+    @RequestMapping("/valid/validate")
+    @ResponseBody
+    public Map<String,Object> validate(
+            @Valid @RequestBody ValidatorPojo vp, Errors errors){
+        Map<String, Object> errMap = new HashMap<>();
+        //获取错误列表
+        List<ObjectError> oes = errors.getAllErrors();
+        for (ObjectError oe : oes){
+            String key = null;
+            String msg = null;
+            //字段错误
+            if(oe instanceof FieldError){
+                FieldError fe = (FieldError) oe;
+                key = fe.getField();//获取错误验证字段名
+            }else{
+                //非字段错误
+                key = oe.getObjectName();//获取验证对象名称
+            }
+            //错误信息
+            msg = oe.getDefaultMessage();
+            errMap.put(key,msg);
+        }
+        return errMap;
+    }
 
 
 

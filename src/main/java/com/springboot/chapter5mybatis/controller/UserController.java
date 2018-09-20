@@ -2,12 +2,23 @@ package com.springboot.chapter5mybatis.controller;
 
 import com.springboot.chapter5mybatis.pojo.User;
 import com.springboot.chapter5mybatis.service.UserService;
+import com.springboot.chapter5mybatis.validator.UserValidator;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.propertyeditors.CustomDateEditor;
 import org.springframework.stereotype.Controller;
+import org.springframework.validation.Errors;
+import org.springframework.validation.FieldError;
+import org.springframework.validation.ObjectError;
+import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
+import javax.validation.Valid;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/user")
@@ -119,8 +130,50 @@ public class UserController {
         return userList;
     }
 
+    /**
+     * 调用控制器前先执行这个方法
+     * @param binder
+     */
+    @InitBinder
+    public void initBinder(WebDataBinder binder){
+        //绑定验证器
+        binder.setValidator(new UserValidator());
+        //定义日期参数格式，参数不再需要注解 @DateTimeFormat, boolean 参数表示是否允许为空
+        binder.registerCustomEditor(Date.class,
+                new CustomDateEditor(new SimpleDateFormat("yyyy-MM--dd"),false));
+    }
 
-
+    /**
+     *  http://localhost:8080/user/validator?user=1--note_1&date=2018-01-01
+     * @param user 用户对象用 StringToUserConverter转换
+     * @param errors 验证器返回的错误
+     * @param date 因为WebDataBinder已经绑定了格式，所以不再需要注解
+     * @return 各类数据
+     */
+    @GetMapping("/validator")
+    @ResponseBody
+    public Map<String, Object> validator(@Valid User user, Errors errors, Date date){
+        Map<String, Object> map = new HashMap<>();
+        map.put("user", user);
+        map.put("date", date);
+        //判断是否存在错误
+        if(errors.hasErrors()){
+            //获取全部错误
+            List<ObjectError> oes = errors.getAllErrors();
+            for (ObjectError oe : oes){
+                //判断是否是字段错误
+                if (oe instanceof FieldError){
+                    //字段错误
+                    FieldError fe = (FieldError) oe;
+                    map.put(fe.getField(), fe.getDefaultMessage());
+                }else {
+                    //对象错误
+                    map.put(oe.getObjectName(),oe.getDefaultMessage());
+                }
+            }
+        }
+        return map;
+    }
 
 
 
